@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum HotspotStatus {
+  ONLINE
+  OFFLINE
+  MAINTENANCE
+}
+
+enum VoucherStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  DISABLED
+}
+
+enum WifiUserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum LoginStatus {
+  SUCCESS
+  FAILED
+}
+
+enum SecuritySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SecurityEventType {
+  FAILED_LOGIN
+  MULTIPLE_FAILED_LOGINS
+  SUSPICIOUS_TRAFFIC
+  ACCOUNT_LOCKED
+  UNUSUAL_USAGE
+  BLOCKED_IP
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         UserRole      @default(VIEWER)
+  status       UserStatus    @default(ACTIVE)
+  lastLogin    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  loginAudits  LoginAudit[]
+  securityEvents SecurityEvent[]
+}
+
+model Hotspot {
+  id          String          @id @default(cuid())
+  name        String
+  location    String
+  status      HotspotStatus   @default(OFFLINE)
+  maxUsers    Int             @default(50)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  vouchers    Voucher[]
+  wifiUsers   WifiUser[]
+  sessions    UsageSession[]
+}
+
+model WifiUser {
+  id          String        @id @default(cuid())
+  name        String
+  email       String?
+  device      String?
+  status      WifiUserStatus @default(ACTIVE)
+  hotspotId   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  hotspot     Hotspot       @relation(fields: [hotspotId], references: [id])
+  sessions    UsageSession[]
+}
+
+model Voucher {
+  id          String        @id @default(cuid())
+  code        String        @unique
+  duration    Int
+  status      VoucherStatus @default(ACTIVE)
+  expiresAt   DateTime?
+  usedAt      DateTime?
+  hotspotId   String
+  createdAt   DateTime      @default(now())
+
+  hotspot     Hotspot       @relation(fields: [hotspotId], references: [id])
+}
+
+model UsageSession {
+  id          String    @id @default(cuid())
+  wifiUserId  String
+  hotspotId   String
+  device      String?
+  ipAddress   String?
+  startTime   DateTime  @default(now())
+  endTime     DateTime?
+  dataUsedMb  Float     @default(0)
+
+  wifiUser    WifiUser  @relation(fields: [wifiUserId], references: [id])
+  hotspot     Hotspot   @relation(fields: [hotspotId], references: [id])
+}
+
+model LoginAudit {
+  id          String      @id @default(cuid())
+  userId      String?
+  email       String
+  ipAddress   String?
+  userAgent   String?
+  status      LoginStatus
+  createdAt   DateTime    @default(now())
+
+  user        User?       @relation(fields: [userId], references: [id])
+}
+
+model SecurityEvent {
+  id          String             @id @default(cuid())
+  userId      String?
+  type        SecurityEventType
+  severity    SecuritySeverity
+  ipAddress   String?
+  description String
+  metadata    Json?
+  resolved    Boolean            @default(false)
+  createdAt   DateTime           @default(now())
+
+  user        User?              @relation(fields: [userId], references: [id])
+}
