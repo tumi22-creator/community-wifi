@@ -43,16 +43,22 @@ export default function Sessions() {
         ]);
 
       const sessionsData = Array.isArray(sessionsResponse.data)
-        ? sessionsResponse.data
-        : sessionsResponse.data.data || [];
+  ? sessionsResponse.data
+  : sessionsResponse.data.sessions ||
+    sessionsResponse.data.data ||
+    [];
 
-      const usersData = Array.isArray(usersResponse.data)
-        ? usersResponse.data
-        : usersResponse.data.data || [];
+const usersData = Array.isArray(usersResponse.data)
+  ? usersResponse.data
+  : usersResponse.data.users ||
+    usersResponse.data.data ||
+    [];
 
-      const hotspotsData = Array.isArray(hotspotsResponse.data)
-        ? hotspotsResponse.data
-        : hotspotsResponse.data.data || [];
+const hotspotsData = Array.isArray(hotspotsResponse.data)
+  ? hotspotsResponse.data
+  : hotspotsResponse.data.hotspots ||
+    hotspotsResponse.data.data ||
+    [];
 
       setSessions(sessionsData);
       setUsers(usersData);
@@ -206,11 +212,7 @@ export default function Sessions() {
         <button type="submit">Start Session</button>
       </form>
 
-      <div
-        style={{
-          overflowX: "auto",
-        }}
-      >
+      <div style={{ overflowX: "auto" }}>
         <table
           style={{
             width: "100%",
