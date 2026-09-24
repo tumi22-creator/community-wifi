@@ -35,14 +35,17 @@ export default function WifiUsers() {
         api.get("/hotspots"),
       ]);
 
-     const usersData = Array.isArray(usersResponse.data)
+const usersData = Array.isArray(usersResponse.data)
   ? usersResponse.data
-  : usersResponse.data.data || [];
+  : usersResponse.data.users ||
+    usersResponse.data.data ||
+    [];
 
 const hotspotsData = Array.isArray(hotspotsResponse.data)
   ? hotspotsResponse.data
-  : hotspotsResponse.data.data || [];
-
+  : hotspotsResponse.data.hotspots ||
+    hotspotsResponse.data.data ||
+    [];
 setUsers(usersData);
 setHotspots(hotspotsData);
 
